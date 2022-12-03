@@ -7,7 +7,8 @@ import json
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:lgy1DWXo2pvvFQeEix6x@containers-us-west-83.railway.app:7790/railway'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/bank'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:lgy1DWXo2pvvFQeEix6x@containers-us-west-83.railway.app:7790/railway'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -78,37 +79,59 @@ def retrieve_transaction_by_transaction_id(AccountID, TransactionID):
             }
         ), 404
 
+@app.route('/transactions/insertz', methods = ['POST'])
+def insert_z():
+    print(request.method)
+    print(request.get_json())
+    return "hi", 200
+
 # POST 1 TRANSACTION
-@app.route('/transactions/<string:AccountID>/<string:TransactionID>', methods=["POST"])
-def insert_transaction(AccountID, TransactionID):
+@app.route('/transactions/insert/', methods=["POST"])
+def insert_transaction():
     try:
+        # print(request.method)
+        # data = request.get_json()
+        # return jsonify({
+        #             "code": 200,
+        #             "message": "HIHI are no transactions."
+        #         }
+        #     )
+    
         if request.method == "POST":
-            if (TransactionAccount.query.filter_by(AccountID=AccountID)and TransactionAccount.query.filter_by(TransactionID=TransactionID)).first():
+            print("Request:", request.get_json())
+            data = request.get_json()
+            TransactionID = data['TransactionID']
+            AccountID = data['AccountID']
+            if (TransactionAccount.query.filter_by(AccountID=AccountID) and TransactionAccount.query.filter_by(TransactionID=TransactionID)).first():
                 return jsonify({
                     "code": 400,
                     "message": "Transaction already exists"
                 }
                 ), 400
 
-            else:
-                data = request.json()
-                Date = data['AccountID']
-                TransactionAmount = data['TransactionAmount']
-                ReceivingAccountID = data['ReceivingAccountID']
-                transaction = TransactionAccount(TransactionID=TransactionID, 
-                    AccountID=AccountID,
-                    ReceivingAccountID=ReceivingAccountID,
-                    Date = Date,
-                    TransactionAmount=TransactionAmount)
+            Date = data['Date']
+            TransactionAmount = data['TransactionAmount']
+            ReceivingAccountID = data['ReceivingAccountID']
+            transaction = TransactionAccount(TransactionID=TransactionID, 
+                AccountID=AccountID,
+                ReceivingAccountID=ReceivingAccountID,
+                Date = Date,
+                TransactionAmount=TransactionAmount)
 
-                db.session.add(transaction)
-                db.session.commit()
+                # db.session.add(transaction)
+                # db.session.commit()
 
-    except:
+            return jsonify({
+                "code": 200,
+                "message": "Added Transaction"
+            }
+            ), 200
+
+    except Exception as e:
         return jsonify(
             {
                 "code": 404,
-                "message": "Error inserting transactions."
+                "message": e #"Error inserting transactions."
             }
         ), 404
 
