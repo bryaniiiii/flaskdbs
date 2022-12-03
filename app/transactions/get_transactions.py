@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import os
 import sqlalchemy as db
 from flask_sqlalchemy import SQLAlchemy
@@ -34,6 +34,7 @@ class TransactionAccount(db.Model):
         return {"TransactionID":self.TransactionID, "AccountID":self.AccountID, "ReceivingAccountID":self.ReceivingAccountID, "Date": self.Date, "TransactionAmount": self.TransactionAmount}
 
 
+# GET TRANSACTIONS BY ACCOUNT_ID
 @app.route('/transactions/<string:AccountID>', methods=["GET"])
 def retrieve_transactions_by_user(AccountID):
     try:
@@ -56,6 +57,7 @@ def retrieve_transactions_by_user(AccountID):
             }
         ), 404
 
+# GET 1 TRANSACTION
 @app.route('/transactions/<string:AccountID>/<string:TransactionID>', methods=["GET"])
 def retrieve_transaction_by_transaction_id(AccountID, TransactionID):
     try:
@@ -76,6 +78,66 @@ def retrieve_transaction_by_transaction_id(AccountID, TransactionID):
             }
         ), 404
 
+# POST 1 TRANSACTION
+@app.route('/transactions/<string:AccountID>/<string:TransactionID>', methods=["POST"])
+def insert_transaction(AccountID, TransactionID):
+    try:
+        if request.method == "POST":
+            if (TransactionAccount.query.filter_by(AccountID=AccountID)and TransactionAccount.query.filter_by(TransactionID=TransactionID)).first():
+                return jsonify({
+                    "code": 400,
+                    "message": "Transaction already exists"
+                }
+                ), 400
+
+            else:
+                data = request.json()
+                Date = data['AccountID']
+                TransactionAmount = data['TransactionAmount']
+                ReceivingAccountID = data['ReceivingAccountID']
+                transaction = TransactionAccount(TransactionID=TransactionID, 
+                    AccountID=AccountID,
+                    ReceivingAccountID=ReceivingAccountID,
+                    Date = Date,
+                    TransactionAmount=TransactionAmount)
+
+                db.session.add(transaction)
+                db.session.commit()
+
+    except:
+        return jsonify(
+            {
+                "code": 404,
+                "message": "Error inserting transactions."
+            }
+        ), 404
+
+
+# DELETE 1 TRANSACTION
+@app.route('/transactions/<string:AccountID>/<string:TransactionID>', methods=["DELETE"])
+def delete_transaction_by_transaction_id(AccountID, TransactionID):
+    try:
+        if request.method == "DELETE":
+            transaction = TransactionAccount.query.filter_by(AccountID=AccountID, TransactionID=TransactionID).first()
+            print(transaction)
+            db.session.delete(transaction)
+            db.session.commit()
+
+
+            if (transaction):
+                return jsonify(
+                    {
+                    "code": 200,
+                    "data": transaction.json()
+                    }
+                )
+    except Exception as e:
+        return jsonify(
+            {
+                "code": 404,
+                "message": e
+            }
+        ), 404
 
 if __name__ == '__main__':
     app.run(debug=True, port=os.getenv("PORT", default=1012))
