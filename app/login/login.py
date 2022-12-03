@@ -27,7 +27,17 @@ class UserModel(db.Model):
     Email = db.Column(db.String(255))
     Address = db.Column(db.String(255))
     OptIntoPhyStatements = db.Column(db.Boolean)
-
+    def json(self):
+        return {
+            "UserID":self.UserID, 
+            "Username":self.Username, 
+            "Password":self.Password, 
+            "Firstname":self.Firstname, 
+            "Lastname":self.Lastname, 
+            "Email":self.Email, 
+            "Address":self.Address, 
+            "OptIntoPhyStatements":self.OptIntoPhyStatements
+        }
 class Login(Resource):
 
     
@@ -42,6 +52,6 @@ class Login(Resource):
 
             }, SECRET_KEY,algorithm="HS256"
             )
-            return jsonify({'token': token})
+            return jsonify({'token': token,'username': args["username"]})
         else:
             return jsonify({'message': 'Unable to verify'})

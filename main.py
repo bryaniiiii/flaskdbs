@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, jsonify, make_response, session
+from flask import Flask, jsonify, make_response, session,request
 from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 from flask_sqlalchemy import SQLAlchemy
 import jwt
@@ -31,6 +31,72 @@ db.init_app(app)
 def index():
     result = UserModel.query.filter_by(UserID=1).first()
     return {"message": result.UserID}
+
+
+@app.route("/user/<string:UserID>", methods=['GET'])
+def getUserDetails(UserID):
+
+        # try:
+        userDetails = UserModel.query.filter_by(UserID=UserID).one()
+        
+        if userDetails:
+            return jsonify(
+                {
+                    "code": 200,
+                    "data": userDetails.json()
+                }
+        )
+
+        # except:
+        #     return jsonify(
+        #         {
+        #             "code": 404,
+        #             "message": "User with " + str(UserID) + " is not found"
+        #         }
+        # ), 404
+
+
+
+
+# PUT User Details by User ID 
+@app.route("/user/<string:UserID>", methods=['PUT'])
+def update_user_details(UserID):
+        try:
+
+            userDetails = UserModel.query.filter_by(UserID=UserID).first()
+            user_data = request.get_json()
+            
+            userDetails.Address = user_data['Address']
+            userDetails.Email = user_data['Email']
+            userDetails.Firstname = user_data['Firstname']
+            userDetails.Lastname = user_data['Lastname']
+            userDetails.OptIntoPhyStatements = user_data['OptIntoPhyStatements']
+            userDetails.Password = user_data['Password']
+            userDetails.UserID = user_data['UserID']
+            userDetails.Username = user_data['Username']
+
+
+            db.session.commit()
+
+            return jsonify({
+
+                'status': '200',
+                'msg': f'Success updating the user with the UserID {UserID}!'
+            }) 
+        except:
+            return jsonify(
+            {
+                "code": 500,
+                "data": {
+                    "UserID": UserID
+                },
+                "message": "An error occurred while updating the user. "
+            }
+        ), 500
+
+                
+
+
 
 @app.route('/account/<string:UserID>', methods=["GET"])
 def retrieve_accounts(UserID):
