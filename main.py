@@ -12,10 +12,7 @@ from app.login.login import Login
 from app.account.get_account_info import BankAccount
 from sharemodels import db
 
-
-
-
-
+from app.middleware.auth_middleware import token_required
 
 app = Flask(__name__)
 
@@ -30,6 +27,7 @@ def index():
     return {"message": result.UserID}
 
 @app.route('/account/<string:UserID>', methods=["GET"])
+# @token_required
 def retrieve_accounts(UserID):
     try:
         bank_account_list = BankAccount.query.filter_by(UserID=UserID).all()
@@ -49,7 +47,7 @@ def retrieve_accounts(UserID):
                 "message": "There are no bank accounts."
             }
         ), 404
-    
+
 @app.route('/account/<string:UserID>/<string:AccountID>', methods=["GET"])
 def retrieve_accounts_by_account_id(UserID,AccountID):
     try:
