@@ -7,8 +7,11 @@ import json
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/bank'
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:lgy1DWXo2pvvFQeEix6x@containers-us-west-83.railway.app:7790/railway'
+# LOCAL URI
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/bank'
+
+# RAILWAY URI
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:lgy1DWXo2pvvFQeEix6x@containers-us-west-83.railway.app:7790/railway'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -23,16 +26,18 @@ class TransactionAccount(db.Model):
     ReceivingAccountID = db.Column(db.Integer, nullable=True)
     Date = db.Column(db.VARCHAR(255), nullable=True)
     TransactionAmount = db.Column(db.DECIMAL(10, 2), nullable=True)
+    Comment = db.Column(db.VARCHAR(255), nullable=True)
 
-    def __init__(self, TransactionID, AccountID, ReceivingAccountID, Date, TransactionAmount):
+    def __init__(self, TransactionID, AccountID, ReceivingAccountID, Date, TransactionAmount, Comment):
         self.TransactionID = TransactionID
         self.AccountID = AccountID
         self.ReceivingAccountID = ReceivingAccountID
         self.Date = Date
         self.TransactionAmount = TransactionAmount
+        self.Comment = Comment
 
     def json(self):
-        return {"TransactionID":self.TransactionID, "AccountID":self.AccountID, "ReceivingAccountID":self.ReceivingAccountID, "Date": self.Date, "TransactionAmount": self.TransactionAmount}
+        return {"TransactionID":self.TransactionID, "AccountID":self.AccountID, "ReceivingAccountID":self.ReceivingAccountID, "Date": self.Date, "TransactionAmount": self.TransactionAmount, "Comment": self.Comment}
 
 
 # GET TRANSACTIONS BY ACCOUNT_ID
@@ -89,13 +94,6 @@ def insert_z():
 @app.route('/transactions/insert/', methods=["POST"])
 def insert_transaction():
     try:
-        # print(request.method)
-        # data = request.get_json()
-        # return jsonify({
-        #             "code": 200,
-        #             "message": "HIHI are no transactions."
-        #         }
-        #     )
     
         if request.method == "POST":
             print("Request:", request.get_json())
@@ -112,17 +110,21 @@ def insert_transaction():
             Date = data['Date']
             TransactionAmount = data['TransactionAmount']
             ReceivingAccountID = data['ReceivingAccountID']
-            transaction = TransactionAccount(TransactionID=TransactionID, 
+            Comment = data['Comment']
+            transaction = TransactionAccount(
+                TransactionID=TransactionID, 
                 AccountID=AccountID,
                 ReceivingAccountID=ReceivingAccountID,
                 Date = Date,
-                TransactionAmount=TransactionAmount)
+                TransactionAmount=TransactionAmount,
+                Comment= Comment)
 
-                # db.session.add(transaction)
-                # db.session.commit()
+            db.session.add(transaction)
+            db.session.commit()
 
             return jsonify({
                 "code": 200,
+                "data": transaction.json(),
                 "message": "Added Transaction"
             }
             ), 200
@@ -131,29 +133,36 @@ def insert_transaction():
         return jsonify(
             {
                 "code": 404,
-                "message": e #"Error inserting transactions."
+                "message": "Error inserting transactions."
             }
         ), 404
 
 
 # DELETE 1 TRANSACTION
-@app.route('/transactions/<string:AccountID>/<string:TransactionID>', methods=["DELETE"])
-def delete_transaction_by_transaction_id(AccountID, TransactionID):
+@app.route('/transactions/delete/', methods=["DELETE"])
+def delete_transaction_by_transaction_id():
     try:
         if request.method == "DELETE":
+            data = request.get_json()
+            TransactionID = data['TransactionID']
+            AccountID = data['AccountID']
             transaction = TransactionAccount.query.filter_by(AccountID=AccountID, TransactionID=TransactionID).first()
             print(transaction)
-            db.session.delete(transaction)
-            db.session.commit()
-
-
+           
             if (transaction):
+                db.session.delete(transaction)
+                db.session.commit()
                 return jsonify(
                     {
                     "code": 200,
                     "data": transaction.json()
                     }
-                )
+                ), 200
+            else:
+                return jsonify({
+                    "code": 400,
+                    "message": "cannot find transaction."
+                }), 400
     except Exception as e:
         return jsonify(
             {
