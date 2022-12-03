@@ -1,3 +1,4 @@
+from app.auth_middleware.auth_middleware import generate_token
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 import jwt
@@ -29,29 +30,24 @@ class UserModel(db.Model):
     OptIntoPhyStatements = db.Column(db.Boolean)
     def json(self):
         return {
-            "UserID":self.UserID, 
-            "Username":self.Username, 
-            "Password":self.Password, 
-            "Firstname":self.Firstname, 
-            "Lastname":self.Lastname, 
-            "Email":self.Email, 
-            "Address":self.Address, 
+            "UserID":self.UserID,
+            "Username":self.Username,
+            "Password":self.Password,
+            "Firstname":self.Firstname,
+            "Lastname":self.Lastname,
+            "Email":self.Email,
+            "Address":self.Address,
             "OptIntoPhyStatements":self.OptIntoPhyStatements
         }
 class Login(Resource):
 
-    
+
     def post(self):
         args = login_args.parse_args()
         exists = bool(UserModel.query.filter_by(Username=args['username'],Password=args['password']).first())
         if exists:
             user = UserModel.query.filter_by(Username=args['username'],Password=args['password']).first()
-            token = jwt.encode({
-                'user': args['username'],
-                'exp': datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(minutes=30)
-
-            }, SECRET_KEY,algorithm="HS256"
-            )
+            token = generate_token(args['username'])
             return jsonify({'token': token,'UserID': user.UserID})
         else:
             return jsonify({'message': 'Unable to verify'})
