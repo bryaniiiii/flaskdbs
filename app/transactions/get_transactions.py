@@ -34,16 +34,17 @@ class TransactionAccount(db.Model):
         return {"TransactionID":self.TransactionID, "AccountID":self.AccountID, "ReceivingAccountID":self.ReceivingAccountID, "Date": self.Date, "TransactionAmount": self.TransactionAmount}
 
 
-@app.route('/account/<string:TransactionID>', methods=["GET"])
-def retrieve_accounts(UserID):
+@app.route('/transactions/<string:AccountID>', methods=["GET"])
+def retrieve_transactions_by_user(AccountID):
     try:
-        bank_account_list = TransactionAccount.query.filter_by(UserID=UserID).all()
-        if len(bank_account_list):
+        transaction_lists = TransactionAccount.query.filter_by(AccountID=AccountID).all()
+        print(transaction_lists)
+        if len(transaction_lists):
             return jsonify(
                 {
                 "code": 200,
                 "data": {
-                        bank_account_list.json()
+                    "transaction_lists": [transaction_list.json() for transaction_list in transaction_lists]
                     }
                 }
             )
@@ -51,10 +52,29 @@ def retrieve_accounts(UserID):
         return jsonify(
             {
                 "code": 404,
-                "message": "There are no bank accounts."
+                "message": "There are no transactions."
             }
         ), 404
-    
+
+@app.route('/transactions/<string:AccountID>/<string:TransactionID>', methods=["GET"])
+def retrieve_transaction_by_transaction_id(AccountID, TransactionID):
+    try:
+        transaction_list = TransactionAccount.query.filter_by(AccountID=AccountID, TransactionID=TransactionID).one()
+        print(transaction_list)
+        if (transaction_list):
+            return jsonify(
+                {
+                "code": 200,
+                "data": transaction_list.json()
+                }
+            )
+    except:
+        return jsonify(
+            {
+                "code": 404,
+                "message": "There are no transactions."
+            }
+        ), 404
 
 
 if __name__ == '__main__':
