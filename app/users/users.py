@@ -56,7 +56,7 @@ class User(db.Model):
     def getUserDetails(UserID):
 
         try:
-            userDetails = User.query.filter_by(UserID=UserID)
+            userDetails = User.query.filter_by(UserID=UserID).one()
             
             if userDetails:
                 return jsonify(
