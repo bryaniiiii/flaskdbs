@@ -11,6 +11,7 @@ from app.login.login import UserModel
 from app.login.login import Login
 from app.account.get_account_info import BankAccount
 from sharemodels import db
+from flask_cors import CORS, cross_origin
 
 
 
@@ -20,7 +21,9 @@ from sharemodels import db
 app = Flask(__name__)
 
 api = Api(app)
+cors = CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:lgy1DWXo2pvvFQeEix6x@containers-us-west-83.railway.app:7790/railway"
+app.config['CORS_HEADERS'] = 'Content-Type'
 db.init_app(app)
 
 
@@ -70,6 +73,7 @@ def retrieve_accounts_by_account_id(UserID,AccountID):
         ), 404
 
 api.add_resource(Login, "/login")
+
 
 
 if __name__ == '__main__':
