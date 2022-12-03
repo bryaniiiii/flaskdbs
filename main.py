@@ -10,6 +10,7 @@ import mysql.connector
 from app.login.login import UserModel
 from app.login.login import Login
 from app.account.get_account_info import BankAccount
+from app.transactions.get_transactions import TransactionAccount
 from sharemodels import db
 from flask_cors import CORS, cross_origin
 
@@ -135,6 +136,131 @@ def retrieve_accounts_by_account_id(UserID,AccountID):
             {
                 "code": 404,
                 "message": "There are no bank accounts."
+            }
+        ), 404
+
+@app.route('/transactions/<string:AccountID>', methods=["GET"])
+def retrieve_transactions_by_user(AccountID):
+    try:
+        transaction_lists = TransactionAccount.query.filter_by(AccountID=AccountID).all()
+        print(transaction_lists)
+        if len(transaction_lists):
+            return jsonify(
+                {
+                "code": 200,
+                "data": {
+                    "transaction_lists": [transaction_list.json() for transaction_list in transaction_lists]
+                    }
+                }
+            )
+    except:
+        return jsonify(
+            {
+                "code": 404,
+                "message": "There are no transactions."
+            }
+        ), 404
+
+# GET 1 TRANSACTION
+@app.route('/transactions/<string:AccountID>/<string:TransactionID>', methods=["GET"])
+def retrieve_transaction_by_transaction_id(AccountID, TransactionID):
+    try:
+        transaction_list = TransactionAccount.query.filter_by(AccountID=AccountID, TransactionID=TransactionID).one()
+        print(transaction_list)
+        if (transaction_list):
+            return jsonify(
+                {
+                "code": 200,
+                "data": transaction_list.json()
+                }
+            )
+    except:
+        return jsonify(
+            {
+                "code": 404,
+                "message": "There are no transactions."
+            }
+        ), 404
+
+
+# POST 1 TRANSACTION
+@app.route('/transactions/insert/', methods=["POST"])
+def insert_transaction():
+    try:
+    
+        if request.method == "POST":
+            # print("Request:", request.get_json())
+            data = request.get_json()
+            TransactionID = data['TransactionID']
+            AccountID = data['AccountID']
+            if (TransactionAccount.query.filter_by(AccountID=AccountID) and TransactionAccount.query.filter_by(TransactionID=TransactionID)).first():
+                return jsonify({
+                    "code": 400,
+                    "message": "Transaction already exists"
+                }
+                ), 400
+
+            Date = data['Date']
+            TransactionAmount = data['TransactionAmount']
+            ReceivingAccountID = data['ReceivingAccountID']
+            Comment = data['Comment']
+            transaction = TransactionAccount(
+                TransactionID=TransactionID, 
+                AccountID=AccountID,
+                ReceivingAccountID=ReceivingAccountID,
+                Date = Date,
+                TransactionAmount=TransactionAmount,
+                Comment= Comment)
+
+            db.session.add(transaction)
+            db.session.commit()
+
+            return jsonify({
+                "code": 200,
+                "data": transaction.json(),
+                "message": "Added Transaction"
+            }
+            ), 200
+
+    except Exception as e:
+        return jsonify(
+            {
+                "code": 404,
+                "message": "Error inserting transactions."
+            }
+        ), 404
+
+
+# DELETE 1 TRANSACTION
+@app.route('/transactions/delete/', methods=["DELETE"])
+def delete_transaction_by_transaction_id():
+    try:
+        if request.method == "DELETE":
+            data = request.get_json()
+            TransactionID = data['TransactionID']
+            AccountID = data['AccountID']
+            transaction = TransactionAccount.query.filter_by(AccountID=AccountID, TransactionID=TransactionID).first()
+            # print(transaction)
+           
+            if (transaction):
+                db.session.delete(transaction)
+                db.session.commit()
+                return jsonify(
+                    {
+                    "code": 200,
+                    "data": transaction.json()
+                    }
+                ), 200
+            else:
+                return jsonify({
+                    "code": 400,
+                    "message": "cannot find transaction."
+                }), 400
+    except Exception as e:
+        return jsonify(
+            {
+                "code": 404,
+                "message": e
             }
         ), 404
 
