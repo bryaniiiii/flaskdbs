@@ -4,7 +4,6 @@ import jwt
 import datetime
 from flask import Flask, jsonify, make_response, session
 import os
-from dotenv import load_dotenv
 from sharemodels import db
 
 login_args = reqparse.RequestParser()
