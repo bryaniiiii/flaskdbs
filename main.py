@@ -7,8 +7,9 @@ import jwt
 import datetime
 from functools import wraps
 import mysql.connector
-from login.login import UserModel
-from login.login import Login
+from app.login.login import UserModel
+from app.login.login import Login
+from app.account.get_account_info import BankAccount
 from sharemodels import db
 
 
@@ -27,6 +28,46 @@ db.init_app(app)
 def index():
     result = UserModel.query.filter_by(UserID=1).first()
     return {"message": result.UserID}
+
+@app.route('/account/<string:UserID>', methods=["GET"])
+def retrieve_accounts(UserID):
+    try:
+        bank_account_list = BankAccount.query.filter_by(UserID=UserID).all()
+        if len(bank_account_list):
+            return jsonify(
+                {
+                "code": 200,
+                "data": {
+                    "bank_account": [bank_account.json() for bank_account in bank_account_list]
+                    }
+                }
+            )
+    except:
+        return jsonify(
+            {
+                "code": 404,
+                "message": "There are no bank accounts."
+            }
+        ), 404
+    
+@app.route('/account/<string:UserID>/<string:AccountID>', methods=["GET"])
+def retrieve_accounts_by_account_id(UserID,AccountID):
+    try:
+        bank_account = BankAccount.query.filter_by(UserID=UserID).filter_by(AccountID=AccountID).one()
+        if (bank_account):
+            return jsonify(
+                {
+                "code": 200,
+                "data": bank_account.json()
+                }
+            )
+    except:
+        return jsonify(
+            {
+                "code": 404,
+                "message": "There are no bank accounts."
+            }
+        ), 404
 
 api.add_resource(Login, "/login")
 
