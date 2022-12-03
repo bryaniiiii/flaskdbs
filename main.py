@@ -19,6 +19,7 @@ from flask_cors import CORS, cross_origin
 
 
 
+
 app = Flask(__name__)
 
 api = Api(app)
@@ -26,6 +27,9 @@ cors = CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+mysqlconnector://root:lgy1DWXo2pvvFQeEix6x@containers-us-west-83.railway.app:7790/railway"
 app.config['CORS_HEADERS'] = 'Content-Type'
 db.init_app(app)
+
+
+
 
 
 @app.route('/')
