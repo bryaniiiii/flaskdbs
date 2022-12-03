@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+# from flask_serialize import FlaskSerialize
+
 
 app = Flask(__name__)
 # limiter = Limiter(
@@ -27,7 +29,7 @@ class User(db.Model):
     Lastname = db.Column(db.VARCHAR(255), nullable=True)
     Email = db.Column(db.VARCHAR(255), nullable=True)
     Address = db.Column(db.VARCHAR(255), nullable=True)
-    OptIntoPhyStatements = db.Column(db.BOOLEAN(), nullable=True)
+    OptIntoPhyStatements = db.Column(db.INTEGER(), nullable=True)
 
     def __init__(self, UserID, Username, Password, Firstname, Lastname, Email, Address, OptIntoPhyStatements):
         self.UserID = UserID
@@ -52,11 +54,11 @@ class User(db.Model):
         }
 
     # GET User Details by User ID 
-    @app.route("/user/<string:UserID>", methods=['GET'])
+    @app.route("/user/<int:UserID>", methods=['GET'])
     def getUserDetails(UserID):
 
         try:
-            userDetails = User.query.filter_by(UserID=UserID).one()
+            userDetails = User.query.filter_by(UserID=UserID).first()
             
             if userDetails:
                 return jsonify(
@@ -74,8 +76,111 @@ class User(db.Model):
                 }
         ), 404
 
-    # POST User Details by User ID 
+    # PUT User Details by User ID 
+    @app.route("/user/<int:UserID>", methods=['PUT'])
+    def update_user_details(UserID):
+        try:
+
+            userDetails = User.query.filter_by(UserID=UserID).first()
+            user_data = request.get_json()
+            
+            userDetails.Address = user_data['Address'];
+            userDetails.Email = user_data['Email'];
+            userDetails.Firstname = user_data['Firstname'];
+            userDetails.Lastname = user_data['Lastname'];
+            userDetails.OptIntoPhyStatements = user_data['OptIntoPhyStatements'];
+            userDetails.Password = user_data['Password'];
+            userDetails.UserID = user_data['UserID'];
+            userDetails.Username = user_data['Username'];
+
+            # userDetails.update(user_data)
+
+            print(userDetails)
+            print(type(userDetails))
+            print(user_data)
+            # users = [user.serialize() for user in db.view()
+            db.session.commit()
+
+            # user_data = {
+            #     address,
+            #     email,
+            #     firstname,
+            #     lastname,
+            #     optIntoPhyStatements,
+            #     password,
+            #     userID,
+            #     username
+            # }
+
+        # for a_user in users:
+        #     try:
+        #         if a_user['UserID'] == userID:
+        #             userDetails = user(
+        #                 address,
+        #                 email,
+        #                 firstname,
+        #                 lastname,
+        #                 optIntoPhyStatements,
+        #                 password,
+        #                 userID,
+        #                 username
+        #             )
+        #             db.update(user)
+
+            return jsonify({
+                # 'res': user_data.serialize(),
+                'status': '200',
+                'msg': f'Success updating the user with the UserID {UserID}!'
+            }) 
+        except:
+            return jsonify(
+            {
+                "code": 500,
+                "data": {
+                    "UserID": UserID
+                },
+                "message": "An error occurred while updating the user. "
+            }
+        ), 500
+
+                
+
+        # try:
+        #     userlist = User.query.filter_by(UserID=UserID).one()
+        #     if not userlist:
+        #         return jsonify(
+        #             {
+        #                 "code": 404,
+        #                 "data": {
+        #                     "UserID": UserID
+        #                 },
+        #                 "message": "UserID has not been updated"
+        #             }
+        #         ), 404
+
+        #     # update status
+        #     data = request.get_json()
+        #     if data['status']:
+        #         userlist.status = data['status']
+        #         db.session.commit()
+        #         return jsonify(
+        #             {
+        #                 "code": 200,
+        #                 "data": userlist.json(),
+        #                 "message": "User with User ID " + str(UserID) + " has been updated"
+        #             }
+        #         ), 200
+        # except Exception as e:
+        #     return jsonify(
+        #         {
+        #             "code": 500,
+        #             "data": {
+        #                 "UserID": UserID
+        #             },
+        #             "message": "An error occurred while updating the user. " + str(e)
+        #         }
+        #     ), 500
 
 
 if __name__ == '__main__':
-    app.run(port=5002, debug=True)
+    app.run(port=5003, debug=True)
