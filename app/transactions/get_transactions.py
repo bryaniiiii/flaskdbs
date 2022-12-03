@@ -15,12 +15,13 @@ db = SQLAlchemy(app)
 CORS(app)
 
 
-class BankAccount(db.Model):
-    __tablename__ = 'BankAccount'
+class TransactionAccount(db.Model):
+    __tablename__ = 'ScheduledTransactions'
+    TransactionID = db.Column(db.Integer, primary_key=True)
     AccountID = db.Column(db.Integer, primary_key=True)
-    UserID = db.Column(db.Integer, primary_key=True)
-    AccountType = db.Column(db.VARCHAR(255), nullable=False)
-    AccountBalance = db.Column(db.DECIMAL(10, 2), nullable=False)
+    ReceivingAccountID = db.Column(db.Integer, nullable=True)
+    Date = db.Column(db.VARCHAR(255), nullable=True)
+    TransactionAmount = db.Column(db.DECIMAL(10, 2), nullable=True)
 
     def __init__(self, AccountID, UserID, AccountType, AccountBalance):
         self.AccountID = AccountID
@@ -32,7 +33,7 @@ class BankAccount(db.Model):
         return {"AccountID":self.AccountID, "UserID":self.UserID, "AccountType":self.AccountType, "AccountBalance": self.AccountBalance}
 
 
-@app.route('/account/<string:UserID>', methods=["GET"])
+@app.route('/account/<string:TransactionID>', methods=["GET"])
 def retrieve_accounts(UserID):
     try:
         bank_account_list = BankAccount.query.filter_by(UserID=UserID).all()
@@ -41,7 +42,7 @@ def retrieve_accounts(UserID):
                 {
                 "code": 200,
                 "data": {
-                    banl
+                        bank_account_list.json()
                     }
                 }
             )
