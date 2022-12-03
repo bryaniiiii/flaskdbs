@@ -96,7 +96,7 @@ def insert_transaction():
     try:
     
         if request.method == "POST":
-            print("Request:", request.get_json())
+            # print("Request:", request.get_json())
             data = request.get_json()
             TransactionID = data['TransactionID']
             AccountID = data['AccountID']
@@ -147,7 +147,7 @@ def delete_transaction_by_transaction_id():
             TransactionID = data['TransactionID']
             AccountID = data['AccountID']
             transaction = TransactionAccount.query.filter_by(AccountID=AccountID, TransactionID=TransactionID).first()
-            print(transaction)
+            # print(transaction)
            
             if (transaction):
                 db.session.delete(transaction)
