@@ -13,7 +13,7 @@ from app.account.get_account_info import BankAccount
 from app.transactions.get_transactions import TransactionAccount
 from sharemodels import db
 from flask_cors import CORS, cross_origin
-
+from app.auth_middleware.auth_middleware import token_required
 
 
 
