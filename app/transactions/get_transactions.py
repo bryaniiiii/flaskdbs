@@ -23,20 +23,21 @@ class TransactionAccount(db.Model):
     Date = db.Column(db.VARCHAR(255), nullable=True)
     TransactionAmount = db.Column(db.DECIMAL(10, 2), nullable=True)
 
-    def __init__(self, AccountID, UserID, AccountType, AccountBalance):
+    def __init__(self, TransactionID, AccountID, ReceivingAccountID, Date, TransactionAmount):
+        self.TransactionID = TransactionID
         self.AccountID = AccountID
-        self.UserID = UserID
-        self.AccountType = AccountType
-        self.AccountBalance = AccountBalance
+        self.ReceivingAccountID = ReceivingAccountID
+        self.Date = Date
+        self.TransactionAmount = TransactionAmount
 
     def json(self):
-        return {"AccountID":self.AccountID, "UserID":self.UserID, "AccountType":self.AccountType, "AccountBalance": self.AccountBalance}
+        return {"TransactionID":self.TransactionID, "AccountID":self.AccountID, "ReceivingAccountID":self.ReceivingAccountID, "Date": self.Date, "TransactionAmount": self.TransactionAmount}
 
 
 @app.route('/account/<string:TransactionID>', methods=["GET"])
 def retrieve_accounts(UserID):
     try:
-        bank_account_list = BankAccount.query.filter_by(UserID=UserID).all()
+        bank_account_list = TransactionAccount.query.filter_by(UserID=UserID).all()
         if len(bank_account_list):
             return jsonify(
                 {

@@ -19,8 +19,8 @@ class BankAccount(db.Model):
     __tablename__ = 'BankAccount'
     AccountID = db.Column(db.Integer, primary_key=True)
     UserID = db.Column(db.Integer, primary_key=True)
-    AccountType = db.Column(db.VARCHAR(255), nullable=False)
-    AccountBalance = db.Column(db.DECIMAL(10, 2), nullable=False)
+    AccountType = db.Column(db.VARCHAR(255), nullable=True)
+    AccountBalance = db.Column(db.DECIMAL(10, 2), nullable=True)
 
     def __init__(self, AccountID, UserID, AccountType, AccountBalance):
         self.AccountID = AccountID
