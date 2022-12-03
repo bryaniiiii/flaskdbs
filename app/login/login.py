@@ -45,13 +45,13 @@ class Login(Resource):
         args = login_args.parse_args()
         exists = bool(UserModel.query.filter_by(Username=args['username'],Password=args['password']).first())
         if exists:
-
+            user = UserModel.query.filter_by(Username=args['username'],Password=args['password']).first()
             token = jwt.encode({
                 'user': args['username'],
                 'exp': datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(minutes=30)
 
             }, SECRET_KEY,algorithm="HS256"
             )
-            return jsonify({'token': token,'username': args["username"]})
+            return jsonify({'token': token,'UserID': user.UserID})
         else:
             return jsonify({'message': 'Unable to verify'})
