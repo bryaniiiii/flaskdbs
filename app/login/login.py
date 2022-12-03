@@ -30,18 +30,17 @@ class UserModel(db.Model):
 
 class Login(Resource):
 
-    
+
     def post(self):
         args = login_args.parse_args()
-        exists = bool(UserModel.query.filter_by(Username=args['username'],Password=args['password']).first())
-        if exists:
-
+        user = UserModel.query.filter_by(Username=args['username'],Password=args['password']).first()
+        if user:
             token = jwt.encode({
                 'user': args['username'],
                 'exp': datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(minutes=30)
 
             }, SECRET_KEY,algorithm="HS256"
             )
-            return jsonify({'token': token})
+            return jsonify({'token': token, 'userId': user.UserID})
         else:
             return jsonify({'message': 'Unable to verify'})
